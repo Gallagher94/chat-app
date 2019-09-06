@@ -57,8 +57,18 @@ io.on("connection", socket => {
   });
 
   socket.on("sendMessage", (messageData, callback) => {
-    const filter = new Filter();
     const user = getUser(socket.id);
+    const filter = new Filter();
+
+    updateIsTyping(user.id, false);
+    const usersInRoomThatAreTyping = getUsersInRoom(user.room).filter(
+      user => user.isTyping
+    );
+    const sanitisedUsersArray = usersInRoomThatAreTyping.map(
+      user => user.username
+    );
+
+    io.to(user.room).emit("typing", sanitisedUsersArray);
 
     if (!user) {
       return callback("Could not find user to send message to");
