@@ -120,3 +120,23 @@ socket.emit("join", { username, room }, error => {
     location.href = "/";
   }
 });
+
+$messageFormInput.addEventListener("input", () => {
+  let isTyping = $messageFormInput.value !== "";
+  socket.emit("typing", isTyping, error => {
+    error && console.log(error);
+  });
+});
+
+socket.on("typing", usersTyping => {
+  console.log("Users typed");
+  console.log(usersTyping);
+
+  if (usersTyping.length > 0) {
+    document.getElementById(
+      "typing"
+    ).textContent = `${usersTyping.toString()} is typing`;
+  } else {
+    document.getElementById("typing").textContent = usersTyping.toString();
+  }
+});

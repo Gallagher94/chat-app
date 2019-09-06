@@ -17,7 +17,12 @@ const addUser = ({ id, username, room }) => {
   }
 
   //store in one variable user
-  const user = { id, username: sanitisedUsername, room: sanitisedRoom };
+  const user = {
+    id,
+    username: sanitisedUsername,
+    room: sanitisedRoom,
+    isTyping: false
+  };
   users.push(user);
 
   return { user };
@@ -44,4 +49,15 @@ const getUsersInRoom = room => {
   return users.filter(user => user.room === room);
 };
 
-module.exports = { addUser, removeUser, getUser, getUsersInRoom };
+const updateIsTyping = (id, isTyping) => {
+  const user = getUser(id);
+  user.isTyping = isTyping;
+};
+
+module.exports = {
+  addUser,
+  removeUser,
+  getUser,
+  getUsersInRoom,
+  updateIsTyping
+};

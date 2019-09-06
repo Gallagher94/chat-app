@@ -7,7 +7,8 @@ const {
   addUser,
   removeUser,
   getUser,
-  getUsersInRoom
+  getUsersInRoom,
+  updateIsTyping
 } = require("./utils/users");
 
 const {
@@ -75,6 +76,26 @@ io.on("connection", socket => {
     callback();
   });
 
+  socket.on("typing", (isTyping, callback) => {
+    const user = getUser(socket.id);
+
+    if (!user) {
+      return callback("Could not find user who is typing");
+    }
+
+    updateIsTyping(user.id, isTyping);
+    const usersInRoomThatAreTyping = getUsersInRoom(user.room).filter(
+      user => user.isTyping
+    );
+    const sanitisedUsersArray = usersInRoomThatAreTyping.map(
+      user => user.username
+    );
+
+    io.to(user.room).emit("typing", sanitisedUsersArray);
+
+    callback();
+  });
+
   socket.on("sendLocation", (locationData, callback) => {
     const user = getUser(socket.id);
 
@@ -95,6 +116,17 @@ io.on("connection", socket => {
   });
 
   socket.on("disconnect", () => {
+    const removingUser = getUser(socket.id);
+    updateIsTyping(removingUser.id, false);
+    const usersInRoomThatAreTyping = getUsersInRoom(removingUser.room).filter(
+      removingUser => removingUser.isTyping
+    );
+    const sanitisedUsersArray = usersInRoomThatAreTyping.map(
+      removingUser => removingUser.username
+    );
+
+    io.to(removingUser.room).emit("typing", sanitisedUsersArray);
+
     const user = removeUser(socket.id);
 
     if (user) {
